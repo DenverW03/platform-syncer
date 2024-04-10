@@ -8,11 +8,18 @@ async function greet() {
   greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
 }
 
+async function selectFile() {
+  await invoke("select_file");
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   greetInputEl = document.querySelector("#greet-input");
   greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
+  // document.querySelector("#greet-form").addEventListener("submit", (e) => {
+  //   e.preventDefault();
+  //   greet();
+  // });
+  document.getElementById("file-button").addEventListener("click", function() {
+    selectFile();
   });
 });
