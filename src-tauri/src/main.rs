@@ -1,9 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fmt::Write;
-
-use tauri_plugin_dialog::{DialogExt, FileResponse};
+use tauri_plugin_dialog::DialogExt;
+use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -12,21 +11,24 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn select_file(app_handle: tauri::AppHandle) -> String {
-    let mut return_var = String::new();
+fn select_file(app_handle: tauri::AppHandle) {
     // Using the app handler to start a file picking dialog
     app_handle.dialog().file().pick_file(move |file_path| {
         // return a file_path `Option`, or `None` if the user closes the dialog
-        match file_path {
-            Some(path) => match path.name {
-                Some(name) => return_var.write_str(&name),
-                None => return_var.write_str("Failed to find file"),
-            },
-            None => return_var.write_str("Failed to find file"),
+        let result = match file_path {
+            Some(file_response) => file_response.path.into_os_string().into_string().unwrap(),
+            None => "".to_string(),
         };
-    });
 
-    return return_var;
+        // Handling the cases that the result can be in
+        if result == "" {
+            println!("Failed to find file");
+        }
+        else {
+            println!("The file path: {}", result);
+            app_handle.emit("file-selected", result).unwrap();
+        }
+    });
 }
 
 fn main() {

@@ -10,6 +10,9 @@ async function greet() {
 
 async function selectFile() {
   await invoke("select_file");
+  window.__TAURI__.event.listen('file-selected', (event) => {
+    greetMsgEl.textContent = event.payload;
+  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
