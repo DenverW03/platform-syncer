@@ -13,19 +13,19 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 fn select_file(app_handle: tauri::AppHandle) {
     // Using the app handler to start a file picking dialog
-    app_handle.dialog().file().pick_file(move |file_path| {
+    app_handle.dialog().file().pick_folder(move |folder_path| {
         // return a file_path `Option`, or `None` if the user closes the dialog
-        let result = match file_path {
-            Some(file_response) => file_response.path.into_os_string().into_string().unwrap(),
+        let result = match folder_path {
+            Some(file_response) => file_response.into_os_string().into_string().unwrap(),
             None => "".to_string(),
         };
 
         // Handling the cases that the result can be in
         if result == "" {
-            println!("Failed to find file");
+            println!("Failed to find folder");
         }
         else {
-            println!("The file path: {}", result);
+            println!("The folder path: {}", result);
             app_handle.emit("file-selected", result).unwrap();
         }
     });
