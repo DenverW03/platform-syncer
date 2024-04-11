@@ -1,14 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri_plugin_dialog::DialogExt;
+use std::fs::File;
 use tauri::Manager;
-
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+use tauri_plugin_dialog::DialogExt;
+use reqwest::blocking::Client;
 
 #[tauri::command]
 fn select_file(app_handle: tauri::AppHandle) {
@@ -23,19 +19,28 @@ fn select_file(app_handle: tauri::AppHandle) {
         // Handling the cases that the result can be in
         if result == "" {
             println!("Failed to find folder");
-        }
-        else {
+        } else {
             println!("The folder path: {}", result);
             app_handle.emit("file-selected", result).unwrap();
         }
     });
 }
 
+async fn send_file(file_path: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file = File::open("from_a_file.txt")?;
+    let client = Client::new();
+    let res = client.post("http://httpbin.org/post")
+        .body(file)
+        .send()?;
+
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, select_file])
+        .invoke_handler(tauri::generate_handler![select_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
