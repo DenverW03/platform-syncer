@@ -5,7 +5,7 @@ async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello, world!")
 }
 
-#[post("/upload")]
+#[post("/post")]
 async fn upload(body: web::Bytes) -> impl Responder {
     // TODO: Implement file upload logic
     println!("File RECEIVED!");

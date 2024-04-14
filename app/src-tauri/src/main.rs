@@ -28,7 +28,7 @@ fn select_file(app_handle: tauri::AppHandle) {
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
             // Sending the file to the server
-            let _ = send_file(result, "127.0.0.1:8080");
+            let _ = send_file(result, "http://127.0.0.1:8080");
         }
     });
 }
