@@ -92,7 +92,7 @@ async fn setup_games_json() {
         let mut file = File::create(&games_to_sync)
             .await
             .expect("Failed to create file");
-        let initial_data = r#"{"games": []}"#;
+        let initial_data = r#"[]"#; // r#"{"games": []}"#;
         file.write_all(initial_data.as_bytes())
             .await
             .expect("Failed to write initial data to file");
@@ -103,6 +103,12 @@ async fn setup_games_json() {
     }
 }
 
+// A function callable by the frontend to get the JSON path
+#[tauri::command]
+fn get_games_list(app_handle: tauri::AppHandle){
+    let result: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+    app_handle.emit("games-list", result).unwrap();
+}
 
 fn main() {
     setup_games_json();
@@ -111,7 +117,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![select_file])
+        .invoke_handler(tauri::generate_handler![select_file, get_games_list])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

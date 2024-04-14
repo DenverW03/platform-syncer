@@ -1,19 +1,25 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="styles.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tauri App</title>
+        <script type="module" src="/main.js" defer></script>
+    </head>
 
-  <body>
-    <div class="container">
-      <h1>Select a folder to sync</h1>
-      <p id="sync-folder-path">No folder selected</p>
+    <body>
+        <div class="container">
+            <h1>Sync Your Games!</h1>
+            <p id="sync-folder-path">No folder selected</p>
 
-      <button id="choose-button">Choose Folder</button>
-    </div>
-  </body>
+            <button id="choose-button" class="new-folder">
+                New Sync Folder
+            </button>
+
+            <div class="game-container" id="game-container">
+                <div class="game-entry">DUMMY</div>
+            </div>
+        </div>
+    </body>
 </html>
