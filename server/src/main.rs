@@ -8,8 +8,9 @@ async fn hello() -> impl Responder {
 #[post("/upload")]
 async fn upload(body: web::Bytes) -> impl Responder {
     // TODO: Implement file upload logic
-    HttpResponse::Ok().body(format!("Received {} bytes", body.len()));
-    println!("Received a file!");
+    println!("File RECEIVED!");
+
+    HttpResponse::Ok().body(format!("Received {} bytes", body.len()))
 }
 
 #[actix_web::main]
