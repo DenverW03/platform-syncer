@@ -4,14 +4,16 @@ let folderPathText;
 
 async function selectFile() {
   await invoke("select_file");
-  window.__TAURI__.event.listen('file-selected', (event) => {
+  window.__TAURI__.event.listen("folder-selected", (event) => {
     folderPathText.textContent = event.payload;
   });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   folderPathText = document.querySelector("#sync-folder-path");
-  document.getElementById("choose-button").addEventListener("click", function() {
-    selectFile();
-  });
+  document
+    .getElementById("choose-button")
+    .addEventListener("click", function () {
+      selectFile();
+    });
 });

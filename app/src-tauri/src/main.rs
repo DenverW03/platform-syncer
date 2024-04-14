@@ -1,10 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs::File;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
-use reqwest::blocking::Client;
+use futures::stream::TryStreamExt;
+use reqwest::{Body};
+use tokio::fs::File;
+use tokio_util::codec::{BytesCodec, FramedRead};
 
 #[tauri::command]
 fn select_file(app_handle: tauri::AppHandle) {
@@ -21,19 +23,34 @@ fn select_file(app_handle: tauri::AppHandle) {
             println!("Failed to find folder");
         } else {
             println!("The folder path: {}", result);
-            app_handle.emit("file-selected", result).unwrap();
+
+            // Broadcasting that the file has been found to the frontend
+            app_handle.emit("folder-selected", result.clone()).unwrap();
+
+            // Sending the file to the server
+            let _ = send_file(result, "127.0.0.1:8080");
         }
     });
 }
 
-async fn send_file(file_path: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let file = File::open("from_a_file.txt")?;
-    let client = Client::new();
-    let res = client.post("http://httpbin.org/post")
-        .body(file)
-        .send()?;
+#[tokio::main]
+async fn send_file(file_path: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file = File::open(format!("{}/this.txt", file_path)).await?;
+
+    let client = reqwest::Client::new();
+    let _res = client
+        .post(format!("{}/post", url))
+        .body(file_to_body(file))
+        .send()
+        .await?;
 
     Ok(())
+}
+
+fn file_to_body(file: File) -> Body {
+    let stream = FramedRead::new(file, BytesCodec::new());
+    let body = Body::wrap_stream(stream);
+    body
 }
 
 fn main() {
