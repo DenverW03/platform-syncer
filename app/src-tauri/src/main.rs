@@ -3,10 +3,28 @@
 
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
-use futures::stream::TryStreamExt;
 use reqwest::{Body};
 use tokio::fs::File;
 use tokio_util::codec::{BytesCodec, FramedRead};
+use std::env;
+use lazy_static::lazy_static;
+use std::path::PathBuf;
+
+// Using a global var for the app settings path and initialising the path safely
+lazy_static! {
+    static ref DATA_DIR: PathBuf = {
+        // Matching the operating system with the app data path
+        let mut data_dir = match std::env::consts::OS {
+            "windows" => PathBuf::from(std::env::var_os("APPDATA").unwrap()).join("\\ROAMING\\syncer\\"),
+            "macos" => PathBuf::from(std::env::var_os("HOME").unwrap()).join("Library/Application Support/syncer/"),
+            "linux" => PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/syncer/"),
+            _ => PathBuf::from("."),
+        };
+
+        data_dir.push("my_app");
+        data_dir
+    };
+}
 
 #[tauri::command]
 fn select_file(app_handle: tauri::AppHandle) {
@@ -33,10 +51,12 @@ fn select_file(app_handle: tauri::AppHandle) {
     });
 }
 
+// Sending the file over HTTP
 #[tokio::main]
 async fn send_file(file_path: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file = File::open(format!("{}/this.txt", file_path)).await?;
 
+    // Sending the file to the REST endpoint
     let client = reqwest::Client::new();
     let _res = client
         .post(format!("{}/post", url))
@@ -47,6 +67,7 @@ async fn send_file(file_path: String, url: &str) -> Result<(), Box<dyn std::erro
     Ok(())
 }
 
+// Converting the file to a streamable frame
 fn file_to_body(file: File) -> Body {
     let stream = FramedRead::new(file, BytesCodec::new());
     let body = Body::wrap_stream(stream);
@@ -54,6 +75,9 @@ fn file_to_body(file: File) -> Body {
 }
 
 fn main() {
+    // Checking for the app settings JSON and creating if it doesn't exist
+
+    // Setting up the Tauri app frontend
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())

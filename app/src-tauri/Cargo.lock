@@ -2669,6 +2669,7 @@ name = "platform-syncer"
 version = "0.0.0"
 dependencies = [
  "futures",
+ "lazy_static",
  "reqwest",
  "serde",
  "serde_json",
