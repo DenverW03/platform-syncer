@@ -4,18 +4,19 @@
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use reqwest::{Body};
-use tokio::fs::File;
 use tokio_util::codec::{BytesCodec, FramedRead};
 use std::env;
 use lazy_static::lazy_static;
 use std::path::PathBuf;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
     static ref DATA_DIR: PathBuf = {
         // Matching the operating system with the app data path
         let mut data_dir = match std::env::consts::OS {
-            "windows" => PathBuf::from(std::env::var_os("APPDATA").unwrap()).join("\\ROAMING\\syncer\\"),
+            "windows" => PathBuf::from(std::env::var_os("APPDATA").unwrap()).join("ROAMING\\syncer\\"),
             "macos" => PathBuf::from(std::env::var_os("HOME").unwrap()).join("Library/Application Support/syncer/"),
             "linux" => PathBuf::from(std::env::var_os("HOME").unwrap()).join(".config/syncer/"),
             _ => PathBuf::from("."),
@@ -74,8 +75,37 @@ fn file_to_body(file: File) -> Body {
     body
 }
 
+#[tokio::main]
+async fn setup_games_json() {
+    // The saved game folders to sync are in a JSON file
+    let games_to_sync = DATA_DIR.join("games.json");
+
+    // Create the parent directory if it doesn't exist
+    if let Some(parent) = games_to_sync.parent() {
+        std::fs::create_dir_all(parent).expect("Failed to create parent directory");
+    }
+
+    // If the games JSON does not exist then create it! (Typically first time app is run)
+    // Currently the games list JSON will not be synced to cloud
+    if !games_to_sync.exists() {
+        println!("File does not exist, creating a new one...");
+        let mut file = File::create(&games_to_sync)
+            .await
+            .expect("Failed to create file");
+        let initial_data = r#"{"games": []}"#;
+        file.write_all(initial_data.as_bytes())
+            .await
+            .expect("Failed to write initial data to file");
+        println!("File created successfully!");
+    }
+    else {
+            println!("File already exists.");
+    }
+}
+
+
 fn main() {
-    // Checking for the app settings JSON and creating if it doesn't exist
+    setup_games_json();
 
     // Setting up the Tauri app frontend
     tauri::Builder::default()
