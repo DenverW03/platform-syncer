@@ -14,29 +14,12 @@ async function addGames() {
   console.log("here1");
 
   // Invoke get_games_list and wait for the response
-  await invoke("get_games_list");
-
-  window.__TAURI__.event.listen("games-list", (event) => {
-    console.log("here2");
-
-    const gamesListPath = event.payload;
-
-    console.log("${gamesListPath}");
-
-    fetch(gamesListPath)
-      .then((response) => response.json())
-      .then((data) => {
-        const container = document.getElementById("game-container");
-
-        data.forEach((entry) => {
-          const game = document.createElement("div");
-          game.classList.add("game-entry");
-          game.textContent = `${entry.key}`; // ${entry.value}
-          container.appendChild(game);
-        });
-      })
-      .catch((error) => console.error("Error fetching JSON:", error));
-  });
+  try {
+    const jsonData = await invoke("get_games_list");
+    console.log(jsonData);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {

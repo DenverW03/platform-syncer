@@ -105,13 +105,6 @@ async fn setup_games_json() {
     }
 }
 
-// A function callable by the frontend to get the JSON path
-// #[tauri::command]
-// fn get_games_list(app_handle: tauri::AppHandle){
-//     let result: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
-//     app_handle.emit("games-list", result.to_string()).unwrap();
-// }
-
 #[tauri::command]
 pub fn get_games_list() -> Result<Value, String> {
     let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
