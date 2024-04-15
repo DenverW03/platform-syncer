@@ -10,6 +10,8 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
+use std::fs;
+use serde_json::{Value, json};
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -104,10 +106,23 @@ async fn setup_games_json() {
 }
 
 // A function callable by the frontend to get the JSON path
+// #[tauri::command]
+// fn get_games_list(app_handle: tauri::AppHandle){
+//     let result: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+//     app_handle.emit("games-list", result.to_string()).unwrap();
+// }
+
 #[tauri::command]
-fn get_games_list(app_handle: tauri::AppHandle){
-    let result: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
-    app_handle.emit("games-list", result).unwrap();
+pub fn get_games_list() -> Result<Value, String> {
+    let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+
+    let file_contents = fs::read_to_string(file_path)
+        .map_err(|err| err.to_string())?;
+
+    let json_data: Value = serde_json::from_str(&file_contents)
+        .map_err(|err| err.to_string())?;
+
+    Ok(json!(json_data))
 }
 
 fn main() {
