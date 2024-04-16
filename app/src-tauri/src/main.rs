@@ -106,7 +106,7 @@ async fn setup_games_json() {
 }
 
 #[tauri::command]
-fn get_games_list(_app_handle: tauri::AppHandle) -> Result<Value, String> {
+fn get_games_list(_app_handle: tauri::AppHandle) -> Result<String, String> {
     let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
 
     let file_contents = fs::read_to_string(file_path)
@@ -115,7 +115,7 @@ fn get_games_list(_app_handle: tauri::AppHandle) -> Result<Value, String> {
     let json_data: Value = serde_json::from_str(&file_contents)
         .map_err(|err| err.to_string())?;
 
-    Ok(json!(json_data))
+    Ok(json!(json_data).to_string())
 }
 
 fn main() {
