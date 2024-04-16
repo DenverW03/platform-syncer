@@ -30,10 +30,10 @@ lazy_static! {
 }
 
 #[tauri::command]
-fn select_file(app_handle: tauri::AppHandle) {
+fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
     // Using the app handler to start a file picking dialog
     app_handle.dialog().file().pick_folder(move |folder_path| {
-        // return a file_path `Option`, or `None` if the user closes the dialog
+        // Return a file_path `Option`, or `None` if the user closes the dialog
         let result = match folder_path {
             Some(file_response) => file_response.into_os_string().into_string().unwrap(),
             None => "".to_string(),
@@ -45,6 +45,8 @@ fn select_file(app_handle: tauri::AppHandle) {
         } else {
             println!("The folder path: {}", result);
 
+            write_folder_to_json(game_name, result.clone());
+
             // Broadcasting that the file has been found to the frontend
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
@@ -52,6 +54,24 @@ fn select_file(app_handle: tauri::AppHandle) {
             let _ = send_file(result, "http://127.0.0.1:8080");
         }
     });
+}
+
+fn write_folder_to_json(game_name: String, path: String) {
+    let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+
+    // Reading the JSON from with serde
+    let file = fs::File::open(file_path)
+        .expect("file should open read only");
+    let mut json: serde_json::Value = serde_json::from_reader(file)
+        .expect("file should be proper JSON");
+
+    // Add a new value to the JSON
+    json[game_name] = json!(path);
+
+    // Write the modified JSON back to the file
+    let new_json_data = json.to_string();
+    fs::write(PathBuf::from(file_path), new_json_data)
+        .expect("Unable to write file");
 }
 
 // Sending the file over HTTP
@@ -94,7 +114,7 @@ async fn setup_games_json() {
         let mut file = File::create(&games_to_sync)
             .await
             .expect("Failed to create file");
-        let initial_data = r#"[]"#; // r#"{"games": []}"#;
+        let initial_data = r#"[]"#;
         file.write_all(initial_data.as_bytes())
             .await
             .expect("Failed to write initial data to file");
@@ -125,7 +145,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![select_file, get_games_list])
+        .invoke_handler(tauri::generate_handler![select_folder, get_games_list])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
