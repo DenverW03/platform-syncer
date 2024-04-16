@@ -24,7 +24,7 @@ async function addGames() {
         if (jsonObj.hasOwnProperty(key)) {
           const game = document.createElement("div");
           game.classList.add("game-entry");
-          game.textContent = `${key}`; // ${entry.value}
+          game.textContent = `${key}: ${jsonObj[key]}`;
           container.appendChild(game);
         }
       }
