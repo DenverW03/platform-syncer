@@ -3,34 +3,24 @@ const { invoke } = window.__TAURI__.core;
 let folderPathText;
 
 async function selectFolder() {
+  // Getting the name the user wants
   let gameName = "Dark Souls III";
 
+  // Rust backend handles folder selection, syncing and synced game list updating
   await invoke("select_folder", { gameName: gameName });
   window.__TAURI__.event.listen("folder-selected", (event) => {
-    folderPathText.textContent = event.payload;
+    addSpecificGame(gameName, event);
   });
-
-  addSpecificGame(gameName);
 }
 
 // Function used to circumvent reloading entire GUI upon new folder sync addition
-async function addSpecificGame(key) {
-  // Getting the games list JSON and adding the new JSON object
-  invoke("get_games_list")
-    .then((message) => {
-      // Converting the received object to a js JSON object
-      const jsonObj = JSON.parse(message);
+function addSpecificGame(gameName, dir) {
+  const container = document.getElementById("game-container");
+  const game = document.createElement("div");
 
-      const container = document.getElementById("game-container");
-      if (jsonObj.hasOwnProperty(key)) {
-        // Adding the game entry to the game container
-        const game = document.createElement("div");
-        game.classList.add("game-entry");
-        game.textContent = `${key}: ${jsonObj[key]}`;
-        container.appendChild(game);
-      }
-    })
-    .catch((error) => console.error(error));
+  game.classList.add("game-entry");
+  game.textContent = `${gameName}: ${dir}`;
+  container.appendChild(game);
 }
 
 async function addGames() {
