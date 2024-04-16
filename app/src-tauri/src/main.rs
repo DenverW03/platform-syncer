@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use std::fs;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -106,7 +106,7 @@ async fn setup_games_json() {
 }
 
 #[tauri::command]
-pub fn get_games_list() -> Result<Value, String> {
+fn get_games_list(_app_handle: tauri::AppHandle) -> Result<Value, String> {
     let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
 
     let file_contents = fs::read_to_string(file_path)
