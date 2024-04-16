@@ -4,12 +4,13 @@ let folderPathText;
 
 async function selectFolder() {
   // Getting the name the user wants
-  let gameName = "Dark Souls III";
+  let inputField = document.getElementById("name-input");
+  let gameName = inputField.value;
 
   // Rust backend handles folder selection, syncing and synced game list updating
   await invoke("select_folder", { gameName: gameName });
   window.__TAURI__.event.listen("folder-selected", (event) => {
-    addSpecificGame(gameName, event);
+    addSpecificGame(gameName, event.message);
   });
 }
 

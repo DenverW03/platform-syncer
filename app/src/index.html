@@ -11,11 +11,16 @@
     <body>
         <div class="container">
             <h1>Sync Your Games!</h1>
-            <p id="sync-folder-path">No folder selected</p>
 
-            <button id="choose-button" class="new-folder">
-                New Sync Folder
-            </button>
+            <div class="new-game">
+                <input
+                    type="text"
+                    class="name-input"
+                    id="name-input"
+                    placeholder="New Game Name"
+                />
+                <button id="choose-button" class="new-folder">Folder</button>
+            </div>
 
             <div class="game-container" id="game-container"></div>
         </div>

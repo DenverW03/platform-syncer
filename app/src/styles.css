@@ -111,11 +111,23 @@ button {
     align-content: center;
 }
 
+.new-game {
+    background-color: #2f2f2f;
+    border-radius: 8px;
+    max-width: 90%;
+    align-self: center;
+}
+
+.name-input {
+    background-color: black;
+    border-radius: 8px;
+    max-width: fit-content;
+}
+
 .new-folder {
     background-color: #0f0f0f98;
     border-radius: 8px;
     max-width: fit-content;
-    align-self: center;
 }
 
 @media (prefers-color-scheme: dark) {
