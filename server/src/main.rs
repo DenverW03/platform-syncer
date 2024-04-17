@@ -8,19 +8,22 @@ async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello, world!")
 }
 
-#[post("/post")]
-async fn upload(body: web::Bytes) -> impl Responder {
+#[post("/upload/{dir:.+}")]
+async fn upload(path: web::Path<String>, body: web::Bytes) -> impl Responder {
     println!("File RECEIVED!");
 
+    let dir = path.into_inner().to_string();
+
+    println!("{}", dir);
+
     // Saving the file to local storage
-    let file_bytes = body.clone();
-    let file_path: String =
-        "/Users/denver/Documents/Personal/syncer/platform-syncer/files/this.txt".to_string();
-    if let Err(err) = save_file(file_bytes, file_path).await {
-        println!("Error saving file: {}", err);
-    } else {
-        println!("File saved successfully");
-    }
+    // let file_bytes = body.clone();
+    // let file_path: String = format!("./{}", dir);
+    // if let Err(err) = save_file(file_bytes, file_path).await {
+    //     println!("Error saving file: {}", err);
+    // } else {
+    //     println!("File saved successfully");
+    // }
 
     HttpResponse::Ok().body(format!("Received {} bytes", body.len()))
 }

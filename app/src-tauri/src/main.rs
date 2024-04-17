@@ -51,7 +51,7 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
             // Sending the file to the server
-            let _ = send_file(result, "http://127.0.0.1:8080");
+            let _ = send_folder_contents(result, "http://127.0.0.1:8080");
         }
     });
 }
@@ -76,16 +76,30 @@ fn write_folder_to_json(game_name: String, path: String) {
 
 // Sending the file over HTTP
 #[tokio::main]
-async fn send_file(file_path: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let file = File::open(format!("{}/this.txt", file_path)).await?;
+async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // let file = File::open(format!("{}/this.txt", file_path)).await?;
 
-    // Sending the file to the REST endpoint
-    let client = reqwest::Client::new();
-    let _res = client
-        .post(format!("{}/post", url))
-        .body(file_to_body(file))
-        .send()
-        .await?;
+    // Getting all the files in the directory
+    let paths = fs::read_dir(directory).unwrap();
+
+    // Looping through all the files and sending them
+    for path in paths {
+        let file = File::open(path.unwrap().path()).await?;
+        let client = reqwest::Client::new();
+        let _res = client
+            .post(format!("{}/upload", url))
+            .body(file_to_body(file))
+            .send()
+            .await?;
+    }
+
+    // // Sending the file to the REST endpoint
+    // let client = reqwest::Client::new();
+    // let _res = client
+    //     .post(format!("{}/post", url))
+    //     .body(file_to_body(file))
+    //     .send()
+    //     .await?;
 
     Ok(())
 }

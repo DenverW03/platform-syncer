@@ -29,3 +29,6 @@ src-tauri/target/
 
 # Testing
 files/
+
+# ORG
+todo.md
