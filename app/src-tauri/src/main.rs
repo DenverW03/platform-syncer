@@ -12,6 +12,7 @@ use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use std::fs;
 use serde_json::{json, Value};
+use std::path::Path;
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -84,10 +85,15 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
 
     // Looping through all the files and sending them
     for path in paths {
-        let file = File::open(path.unwrap().path()).await?;
+        let file = File::open(&path.as_ref().unwrap().path()).await?;
         let client = reqwest::Client::new();
+
+        // Filename for server side saving
+        let filename = &path.unwrap().file_name();
+
+        // Uploading to the server
         let _res = client
-            .post(format!("{}/upload", url))
+            .post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))) // Need to embed proper name
             .body(file_to_body(file))
             .send()
             .await?;

@@ -2,28 +2,39 @@ use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use std::fs::File;
 use std::io::Error;
 use std::io::Write;
+use std::path::Path;
+use std::path::PathBuf;
 
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello, world!")
 }
 
-#[post("/upload/{dir:.+}")]
+// endpoint /upload/path+filename
+#[post("/upload/{filename:.+}")]
 async fn upload(path: web::Path<String>, body: web::Bytes) -> impl Responder {
     println!("File RECEIVED!");
 
-    let dir = path.into_inner().to_string();
+    // Getting the path to save to including file name
+    let file_path = PathBuf::from("./saves/".to_owned() + &path.into_inner().to_string());
 
-    println!("{}", dir);
+    // Getting the directory path to save to, the files parent directory
+    let dir = file_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf();
+
+    if !&dir.exists() {
+        std::fs::create_dir(&dir).expect("Failed to create game save directory");
+    }
 
     // Saving the file to local storage
-    // let file_bytes = body.clone();
-    // let file_path: String = format!("./{}", dir);
-    // if let Err(err) = save_file(file_bytes, file_path).await {
-    //     println!("Error saving file: {}", err);
-    // } else {
-    //     println!("File saved successfully");
-    // }
+    let file_bytes = body.clone();
+    if let Err(err) = save_file(file_bytes, file_path.to_str().unwrap().to_string()).await {
+        println!("Error saving file: {}", err);
+    } else {
+        println!("File saved successfully");
+    }
 
     HttpResponse::Ok().body(format!("Received {} bytes", body.len()))
 }
@@ -36,6 +47,11 @@ async fn save_file(file_bytes: web::Bytes, file_path: String) -> Result<(), Erro
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Checking for saves directory, creating if nonexistent
+    if !PathBuf::from("./saves/").exists() {
+        std::fs::create_dir(PathBuf::from("./saves/")).expect("Failed to create saves directory");
+    }
+
     HttpServer::new(|| App::new().service(hello).service(upload))
         .bind("127.0.0.1:8080")?
         .run()
