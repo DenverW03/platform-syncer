@@ -84,8 +84,6 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
 
     // Looping through all the files and sending them
     for path in paths {
-        // let file = File::open(&path.as_ref().unwrap().path()).await?;
-        // let client = reqwest::Client::new();
         let mut file = File::open(&path.as_ref().unwrap().path()).await?;
         let mut vec = Vec::new();
         file.read_to_end(&mut vec).await?;
@@ -94,23 +92,10 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
         let filename = &path.unwrap().file_name();
 
         // Uploading the file
-        let _res = client.post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))).header("content-type","application/octet-stream")
+        let _res = client.post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("file with name does not exist"))).header("content-type","application/octet-stream")
         .body(vec)
         .send()
         .await?;
-
-
-        // // Filename for server side saving
-        // let filename = &path.unwrap().file_name();
-
-        // println!("{}", &filename.clone().into_string().unwrap());
-
-        // // Uploading to the server
-        // let _res = client
-        //     .post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))) // Need to embed proper name
-        //     .body(file_to_body(file))
-        //     .send()
-        //     .await?;
     }
 
     Ok(())
