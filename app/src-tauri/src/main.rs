@@ -77,25 +77,27 @@ fn write_folder_to_json(game_name: String, path: String) {
 // Sending the file over HTTP
 #[tokio::main]
 async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // let file = File::open(format!("{}/this.txt", file_path)).await?;
-
     // Getting all the files in the directory
-    let paths = fs::read_dir(directory).unwrap();
+    let paths = fs::read_dir(directory)?;
 
     // Looping through all the files and sending them
     for path in paths {
-        let mut file = File::open(&path.as_ref().unwrap().path()).await?;
-        let mut vec = Vec::new();
-        file.read_to_end(&mut vec).await?;
+        let path = path?;
+        let file_path = path.path();
+        let filename = path.file_name().to_string_lossy().to_string();
+
+        let file = tokio::fs::File::open(file_path).await?;
         let client = reqwest::Client::new();
 
-        let filename = &path.unwrap().file_name();
-
         // Uploading the file
-        let _res = client.post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("file with name does not exist"))).header("content-type","application/octet-stream")
-        .body(vec)
-        .send()
-        .await?;
+        let form = reqwest::multipart::Form::new()
+            .part("file", reqwest::multipart::Part::stream(file).file_name(filename.clone()));
+
+        let _res = client
+            .post(format!("{}/upload/Lies Of P/{}", url, filename))
+            .multipart(form)
+            .send()
+            .await?;
     }
 
     Ok(())
