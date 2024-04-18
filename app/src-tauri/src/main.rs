@@ -3,16 +3,15 @@
 
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
-use reqwest::{Body};
+use reqwest::Body;
 use tokio_util::codec::{BytesCodec, FramedRead};
 use std::env;
 use lazy_static::lazy_static;
 use std::path::PathBuf;
 use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use std::fs;
 use serde_json::{json, Value};
-use std::path::Path;
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -85,27 +84,34 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
 
     // Looping through all the files and sending them
     for path in paths {
-        let file = File::open(&path.as_ref().unwrap().path()).await?;
+        // let file = File::open(&path.as_ref().unwrap().path()).await?;
+        // let client = reqwest::Client::new();
+        let mut file = File::open(&path.as_ref().unwrap().path()).await?;
+        let mut vec = Vec::new();
+        file.read_to_end(&mut vec).await?;
         let client = reqwest::Client::new();
 
-        // Filename for server side saving
         let filename = &path.unwrap().file_name();
 
-        // Uploading to the server
-        let _res = client
-            .post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))) // Need to embed proper name
-            .body(file_to_body(file))
-            .send()
-            .await?;
-    }
+        // Uploading the file
+        let _res = client.post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))).header("content-type","application/octet-stream")
+        .body(vec)
+        .send()
+        .await?;
 
-    // // Sending the file to the REST endpoint
-    // let client = reqwest::Client::new();
-    // let _res = client
-    //     .post(format!("{}/post", url))
-    //     .body(file_to_body(file))
-    //     .send()
-    //     .await?;
+
+        // // Filename for server side saving
+        // let filename = &path.unwrap().file_name();
+
+        // println!("{}", &filename.clone().into_string().unwrap());
+
+        // // Uploading to the server
+        // let _res = client
+        //     .post(format!("{}/upload/Lies Of P/{}", url, filename.to_str().unwrap_or("unknown_file"))) // Need to embed proper name
+        //     .body(file_to_body(file))
+        //     .send()
+        //     .await?;
+    }
 
     Ok(())
 }
