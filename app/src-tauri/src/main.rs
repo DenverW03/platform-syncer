@@ -94,7 +94,7 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
             .part("file", reqwest::multipart::Part::stream(file).file_name(filename.clone()));
 
         let _res = client
-            .post(format!("{}/upload/Lies Of P/{}", url, filename))
+            .post(format!("{}/upload", url)) // "{}/upload/Lies Of P/{}" url, filename
             .multipart(form)
             .send()
             .await?;

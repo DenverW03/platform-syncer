@@ -1,9 +1,11 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_multipart::Multipart;
+use actix_web::http::StatusCode;
+use actix_web::{get, middleware, post, web, App, HttpResponse, HttpServer, Responder};
+use futures::TryStream;
+use futures::{StreamExt, TryStreamExt};
 use std::fs::File;
-use std::io::Error;
-use std::io::Write;
-use std::path::Path;
-use std::path::PathBuf;
+use std::io::{Error, Write};
+use std::path::{Path, PathBuf};
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -44,6 +46,34 @@ async fn save_file(file_bytes: web::Bytes, file_path: String) -> Result<(), Erro
     file.write_all(&file_bytes)?;
     Ok(())
 }
+
+// #[post("/upload")]
+// pub async fn upload(mut payload: web::Payload, file_path: web::Path<String>) -> impl Responder {
+//     let filepath = format!("./saves/{}", file_path.into_inner());
+
+//     let mut f = web::block(|| std::fs::File::create(filepath))
+//         .await
+//         .map_err(|e| {
+//             eprintln!("{}", e);
+//             HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
+//         })?;
+
+//     while let Some(chunk) = payload.next().await {
+//         let bytes = chunk.map_err(|e| {
+//             eprintln!("{}", e);
+//             HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
+//         })?;
+
+//         web::block(move || f.unwrap().write_all(&bytes))
+//             .await
+//             .map_err(|e| {
+//                 eprintln!("{}", e);
+//                 HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)
+//             })?;
+//     }
+
+//     Ok::<HttpResponse>(HttpResponse::Ok().body("File uploaded successfully"))
+// }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
