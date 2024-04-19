@@ -93,8 +93,8 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
         let form = reqwest::multipart::Form::new()
             .part("file", reqwest::multipart::Part::stream(file).file_name(filename.clone()));
 
-        let _res = client
-            .post(format!("{}/upload", url)) // "{}/upload/Lies Of P/{}" url, filename
+        let _res = client // the URL needs to be changed per game
+            .post(format!("{}/upload/Lies Of P/", url)) // "{}/upload/Lies Of P/{}" url, filename
             .multipart(form)
             .send()
             .await?;
