@@ -87,7 +87,7 @@ async fn hello() -> impl Responder {
 //     Ok::<HttpResponse>(HttpResponse::Ok().body("File uploaded successfully"))
 // }
 
-#[post("/upload/{filename:.+}")]
+#[post("/upload")]
 async fn upload(MultipartForm(form): MultipartForm<UploadForm>) -> Result<impl Responder, Error> {
     for f in form.files {
         // Each call is a received file technically I think
