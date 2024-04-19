@@ -20,7 +20,6 @@ async fn upload(
     MultipartForm(form): MultipartForm<UploadForm>,
 ) -> Result<impl Responder, Error> {
     for f in form.files {
-        // Each call is a received file technically I think
         println!("File RECEIVED!");
 
         let path_temp = path_game_name.clone();
@@ -37,11 +36,7 @@ async fn upload(
             std::fs::create_dir(&dir).expect("Failed to create game save directory");
         }
 
-        // The file path
-        // let path = format!("./saves/{}", f.file_name.unwrap());
-
         // Writing the file to the appropriate path
-        // let mut file = File::create(file_path)?;
         f.file.persist(file_path).unwrap();
     }
 
