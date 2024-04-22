@@ -10,7 +10,7 @@ async function selectFolder() {
   // Rust backend handles folder selection, syncing and synced game list updating
   await invoke("select_folder", { gameName: gameName });
   window.__TAURI__.event.listen("folder-selected", (event) => {
-    addSpecificGame(gameName, event.message);
+    addSpecificGame(gameName, event.payload);
   });
 }
 
