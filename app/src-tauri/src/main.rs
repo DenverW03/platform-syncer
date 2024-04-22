@@ -43,13 +43,13 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
         } else {
             println!("The folder path: {}", result);
 
-            write_folder_to_json(game_name, result.clone());
+            write_folder_to_json(game_name.clone(), result.clone());
 
             // Broadcasting that the file has been found to the frontend
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
             // Sending the file to the server
-            let _ = send_folder_contents(result, "http://127.0.0.1:8080");
+            let _ = send_folder_contents(result, "http://127.0.0.1:8080", game_name.clone());
         }
     });
 }
@@ -79,6 +79,7 @@ fn write_folder_to_json(game_name: String, path: String) {
 async fn send_folder_contents(
     directory: String,
     url: &str,
+    game_name: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Getting all the files in the directory
     let paths = fs::read_dir(directory)?;
@@ -99,7 +100,7 @@ async fn send_folder_contents(
         );
 
         let _res = client // the URL needs to be changed per game
-            .post(format!("{}/upload/Lies Of P/", url)) // "{}/upload/Lies Of P/{}" url, filename
+            .post(format!("{}/upload/{}/", url, game_name)) // upload location depends on game
             .multipart(form)
             .send()
             .await?;
