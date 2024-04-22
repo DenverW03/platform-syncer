@@ -1,17 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use lazy_static::lazy_static;
+use serde_json::{json, Value};
+use std::env;
+use std::fs;
+use std::path::PathBuf;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
-use reqwest::Body;
-use tokio_util::codec::{BytesCodec, FramedRead};
-use std::env;
-use lazy_static::lazy_static;
-use std::path::PathBuf;
 use tokio::fs::File;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use std::fs;
-use serde_json::{json, Value};
+use tokio::io::AsyncWriteExt;
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -57,26 +55,31 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
 }
 
 fn write_folder_to_json(game_name: String, path: String) {
-    let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+    let file_path: &str = &DATA_DIR
+        .join("games.json")
+        .into_os_string()
+        .into_string()
+        .unwrap();
 
     // Reading the JSON from with serde
-    let file = fs::File::open(file_path)
-        .expect("file should open read only");
-    let mut json: serde_json::Value = serde_json::from_reader(file)
-        .expect("file should be proper JSON");
+    let file = fs::File::open(file_path).expect("file should open read only");
+    let mut json: serde_json::Value =
+        serde_json::from_reader(file).expect("file should be proper JSON");
 
     // Add a new value to the JSON
     json[game_name] = json!(path);
 
     // Write the modified JSON back to the file
     let new_json_data = json.to_string();
-    fs::write(PathBuf::from(file_path), new_json_data)
-        .expect("Unable to write file");
+    fs::write(PathBuf::from(file_path), new_json_data).expect("Unable to write file");
 }
 
 // Sending the file over HTTP
 #[tokio::main]
-async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+async fn send_folder_contents(
+    directory: String,
+    url: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Getting all the files in the directory
     let paths = fs::read_dir(directory)?;
 
@@ -90,8 +93,10 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
         let client = reqwest::Client::new();
 
         // Uploading the file
-        let form = reqwest::multipart::Form::new()
-            .part("file", reqwest::multipart::Part::stream(file).file_name(filename.clone()));
+        let form = reqwest::multipart::Form::new().part(
+            "file",
+            reqwest::multipart::Part::stream(file).file_name(filename.clone()),
+        );
 
         let _res = client // the URL needs to be changed per game
             .post(format!("{}/upload/Lies Of P/", url)) // "{}/upload/Lies Of P/{}" url, filename
@@ -101,13 +106,6 @@ async fn send_folder_contents(directory: String, url: &str) -> Result<(), Box<dy
     }
 
     Ok(())
-}
-
-// Converting the file to a streamable frame
-fn file_to_body(file: File) -> Body {
-    let stream = FramedRead::new(file, BytesCodec::new());
-    let body = Body::wrap_stream(stream);
-    body
 }
 
 #[tokio::main]
@@ -132,21 +130,22 @@ async fn setup_games_json() {
             .await
             .expect("Failed to write initial data to file");
         println!("File created successfully!");
-    }
-    else {
-            println!("File already exists.");
+    } else {
+        println!("File already exists.");
     }
 }
 
 #[tauri::command]
 fn get_games_list(_app_handle: tauri::AppHandle) -> Result<String, String> {
-    let file_path: &str = &DATA_DIR.join("games.json").into_os_string().into_string().unwrap();
+    let file_path: &str = &DATA_DIR
+        .join("games.json")
+        .into_os_string()
+        .into_string()
+        .unwrap();
 
-    let file_contents = fs::read_to_string(file_path)
-        .map_err(|err| err.to_string())?;
+    let file_contents = fs::read_to_string(file_path).map_err(|err| err.to_string())?;
 
-    let json_data: Value = serde_json::from_str(&file_contents)
-        .map_err(|err| err.to_string())?;
+    let json_data: Value = serde_json::from_str(&file_contents).map_err(|err| err.to_string())?;
 
     Ok(json!(json_data).to_string())
 }
