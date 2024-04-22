@@ -9,6 +9,8 @@ async fn main() -> std::io::Result<()> {
     // Checking for saves directory, creating if nonexistent
     storage_interface::saves_dir_check();
 
+    // Database presence + setup checking
+
     HttpServer::new(|| App::new().service(rest_api::upload))
         .bind("127.0.0.1:8080")?
         .run()
