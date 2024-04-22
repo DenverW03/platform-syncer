@@ -1,4 +1,5 @@
 use actix_web::{App, HttpServer};
+use database_interface::check_database;
 
 mod database_interface;
 mod rest_api;
@@ -10,6 +11,7 @@ async fn main() -> std::io::Result<()> {
     storage_interface::saves_dir_check();
 
     // Database presence + setup checking
+    check_database().expect("Failed to setup the database");
 
     HttpServer::new(|| App::new().service(rest_api::upload))
         .bind("127.0.0.1:8080")?
