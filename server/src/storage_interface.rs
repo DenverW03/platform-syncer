@@ -1,6 +1,7 @@
+use actix_multipart::form::tempfile::TempFile;
 use std::path::{Path, PathBuf};
 
-use actix_multipart::form::tempfile::TempFile;
+use crate::database_interface;
 
 // Function checks for the existence of a save directory, creates one if nonexistent
 pub fn saves_dir_check() {
@@ -28,5 +29,6 @@ pub fn store_file(file: TempFile, game_name: String) {
     // Writing the file to the appropriate path
     file.file.persist(file_path).unwrap();
 
-    // TODO: Update the database entry (check for existence and if not create entry, otherwise update)
+    // New entry insertion or update
+    database_interface::insert_directory(dir).unwrap(); // doing nothing with the returned result atm but will later. TODO i guess lmao
 }
