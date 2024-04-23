@@ -29,8 +29,9 @@ pub fn insert_directory(directory: PathBuf) -> Result<(), rusqlite::Error> {
     // TODO: Update the database entry (check for existence and if not create entry, otherwise update)
 
     // Creating a struct instance of the data so that rusqlite can handle it
+    let directory_string = directory.into_os_string().into_string().unwrap();
     let game: Game = Game {
-        directory: directory.into_os_string().into_string().unwrap(),
+        directory: directory_string,
         date_time: 0, // Throwaway placeholder for now, isn't inserted into the table anyway
     };
 
