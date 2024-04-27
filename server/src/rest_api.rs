@@ -1,7 +1,10 @@
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{get, post, web, HttpResponse, Responder};
 use std::io::Error;
+use std::path::Path;
+use std::path::PathBuf;
 
+use crate::database_interface;
 use crate::storage_interface;
 
 #[derive(Debug, MultipartForm)]
@@ -18,10 +21,17 @@ async fn upload(
     for f in form.files {
         println!("File RECEIVED!");
 
-        // Calling the file storage handling function
         let game_name_dir = game_name.clone();
+
+        // Calling the file storage handling function
         storage_interface::store_file(f, game_name_dir);
     }
+
+    // Getting the directory for the SQL table insertion after file storage
+    let dir = PathBuf::from("./saves/").join(game_name.clone());
+
+    // Adding to database after file saved
+    database_interface::insert_directory(dir).expect("Failed to update saved records"); // doing nothing with the returned result atm but will later. TODO i guess lmao
 
     Ok(HttpResponse::Ok())
 }
