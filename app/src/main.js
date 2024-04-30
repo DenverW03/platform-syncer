@@ -14,6 +14,13 @@ async function selectFolder() {
   });
 }
 
+// This function syncs the game with the cloud: TODO!
+async function syncGame(path) {
+  // Call the rust backend to check the last modified date of the file
+  // If the last modified date of the file is newer than the cloud file, upload the file!
+  // Otherwise, request the file from the server and save it
+}
+
 // Function used to circumvent reloading entire GUI upon new folder sync addition
 function addSpecificGame(gameName, dir) {
   const container = document.getElementById("game-container");
@@ -35,10 +42,28 @@ async function addGames() {
       for (let key in jsonObj) {
         if (jsonObj.hasOwnProperty(key)) {
           // Adding the game entry to the game container
-          const game = document.createElement("div");
-          game.classList.add("game-entry");
-          game.textContent = `${key}: ${jsonObj[key]}`;
-          container.appendChild(game);
+          const gameEntry = document.createElement("div");
+          gameEntry.classList.add("game-entry");
+
+          // Adding a text div to the game entry
+          const gameText = document.createElement("div");
+          gameText.classList.add("game-text");
+          gameText.textContent = `${key}: ${jsonObj[key]}`;
+          gameEntry.appendChild(gameText);
+
+          // Creating a sync button to add to the div
+          const syncButton = document.createElement("button");
+          syncButton.classList.add("sync-button");
+          syncButton.textContent = "SYNC";
+
+          // Adding the button functionality to the sync button
+          syncButton.addEventListener("click", function () {
+            // Calling the syncing function with the file path
+            syncGame(`${jsonObj[key]}`);
+          });
+
+          gameEntry.appendChild(syncButton);
+          container.appendChild(gameEntry);
         }
       }
     })
