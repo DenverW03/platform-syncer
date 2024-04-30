@@ -35,10 +35,7 @@ pub fn insert_directory(directory: PathBuf) -> Result<(), rusqlite::Error> {
         date_time: 0, // Throwaway placeholder for now, isn't inserted into the table anyway
     };
 
-    // let mut stmt = conn.prepare("INSERT INTO Games (directory, date_time) VALUES (?, cast(strftime('%s', 'now') as integer))")?;
-    // stmt.execute([game.directory])?;
-
-    // Check if the directory already exists
+    // Check if the directory entry already exists
     let mut stmt = conn.prepare("SELECT 1 FROM Games WHERE directory = ?")?;
     let exists = stmt.exists([game.directory.clone()])?;
     if exists {
