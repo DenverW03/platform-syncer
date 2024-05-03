@@ -1,11 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
+use std::time::SystemTime;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
@@ -109,6 +109,52 @@ async fn send_folder_contents(
     Ok(())
 }
 
+#[tauri::command]
+async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandle) {
+    // Check when the file was last modified
+    let local_date = date_modified_local(path);
+
+    // Check when the server record was last updated
+    let server_date = date_modified_server(game_name);
+
+    // If record newer then download, if local newer then upload
+}
+
+// Requests the date modified entry from the server using the game name
+async fn date_modified_server(game_name: String) {
+    // Sending a get request
+}
+
+// Uses the path to find the date that the folder was last modified
+// Returns the date as unix time
+async fn date_modified_local(dir: String) -> i32 {
+    // Getting all files in the directory
+    let paths = fs::read_dir(dir).unwrap();
+
+    // Counter to keep the most recent modified date
+    let mut counter: i32 = 0;
+    for path in paths {
+        let path = path.unwrap();
+        let file_path = path.path();
+
+        // Getting the date last modified of the file
+        let metadata = tokio::fs::metadata(file_path).await.unwrap();
+        let time = metadata.modified().unwrap();
+        let unix_time = time
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i32;
+
+        // Comparing with and updating counter if necessary
+        if unix_time > counter {
+            counter = unix_time
+        }
+    }
+
+    // The counter should now hold the unix time of the most recently modified file, being the overall most recent version of the game save
+    counter
+}
+
 #[tokio::main]
 async fn setup_games_json() {
     // The saved game folders to sync are in a JSON file
@@ -158,7 +204,11 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![select_folder, get_games_list])
+        .invoke_handler(tauri::generate_handler![
+            select_folder,
+            get_games_list,
+            sync_game
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

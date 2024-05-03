@@ -35,3 +35,9 @@ async fn upload(
 
     Ok(HttpResponse::Ok())
 }
+
+#[get("/last_modified/{game_name:.+}")]
+async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, Error> {
+    let date: i32 = database_interface::get_last_modified(game_name);
+    Ok(HttpResponse::Ok())
+}

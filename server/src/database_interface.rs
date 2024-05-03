@@ -1,10 +1,27 @@
-use rusqlite::{Connection, Result};
+use rusqlite::{params, Connection, Result};
 use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct Game {
     directory: String,
     date_time: i32,
+}
+
+// Function used to get the last modified date of a game entry in the database
+pub fn get_last_modified(game_name: String) -> Result<i32> {
+    // Connect to the database
+    let conn = Connection::open("database.db")?;
+
+    // Request the row from the database
+    let mut stmt = conn.prepare("SELECT * FROM Games WHERE directory=./saves/?/")?;
+    let entry_iter = stmt.query_map(params![game_name], |row| {
+        Ok(Game {
+            directory: row.get(0)?,
+            date_time: row.get(1)?,
+        })
+    })?;
+
+    Ok(32)
 }
 
 // Function used to check whether the database file exists, if not, creates it

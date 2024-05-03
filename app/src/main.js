@@ -15,10 +15,11 @@ async function selectFolder() {
 }
 
 // This function syncs the game with the cloud: TODO!
-async function syncGame(path) {
+async function sync_game(game_name, path) {
   // Call the rust backend to check the last modified date of the file
   // If the last modified date of the file is newer than the cloud file, upload the file!
   // Otherwise, request the file from the server and save it
+  await invoke("select_folder", { gameName: game_name, path: path });
 }
 
 // Function used to circumvent reloading entire GUI upon new folder sync addition
@@ -59,7 +60,7 @@ async function addGames() {
           // Adding the button functionality to the sync button
           syncButton.addEventListener("click", function () {
             // Calling the syncing function with the file path
-            syncGame(`${jsonObj[key]}`);
+            syncGame(`${key}`, `${jsonObj[key]}`);
           });
 
           gameEntry.appendChild(syncButton);
