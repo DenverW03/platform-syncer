@@ -3,6 +3,7 @@
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use std::env;
+use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -99,7 +100,7 @@ async fn send_folder_contents(
             reqwest::multipart::Part::stream(file).file_name(filename.clone()),
         );
 
-        let _res = client // the URL needs to be changed per game
+        let _result = client
             .post(format!("{}/upload/{}/", url, game_name)) // upload location depends on game
             .multipart(form)
             .send()
@@ -121,8 +122,20 @@ async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandl
 }
 
 // Requests the date modified entry from the server using the game name
-async fn date_modified_server(game_name: String) {
+async fn date_modified_server(game_name: String) -> Result<i32, Box<dyn std::error::Error>> {
     // Sending a get request
+    let client = reqwest::Client::new();
+    let result = client
+        .get(format!("http://127.0.0.1:8080/last_modified/{}", game_name))
+        .send()
+        .await?;
+    // Convert the response bytes to a string
+    let string_response = String::from_utf8(result.bytes().await?.to_vec())?;
+
+    // Parse the string into an i32
+    let date = string_response.parse::<i32>()?;
+
+    Ok(date)
 }
 
 // Uses the path to find the date that the folder was last modified

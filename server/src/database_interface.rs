@@ -14,14 +14,15 @@ pub fn get_last_modified(game_name: String) -> Result<i32> {
 
     // Request the row from the database
     let mut stmt = conn.prepare("SELECT * FROM Games WHERE directory=./saves/?/")?;
-    let entry_iter = stmt.query_map(params![game_name], |row| {
+    let entry = stmt.query_row(params![game_name], |row| {
         Ok(Game {
             directory: row.get(0)?,
             date_time: row.get(1)?,
         })
     })?;
 
-    Ok(32)
+    // Returning the unix time value wrapped in a Result
+    Ok(entry.date_time)
 }
 
 // Function used to check whether the database file exists, if not, creates it
