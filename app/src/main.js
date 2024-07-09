@@ -7,6 +7,9 @@ async function selectFolder() {
   let inputField = document.getElementById("name-input");
   let gameName = inputField.value;
 
+  // If a game name is not inputted, don't allow selection
+  if (gameName == "") return;
+
   // Rust backend handles folder selection, syncing and synced game list updating
   await invoke("select_folder", { gameName: gameName });
   window.__TAURI__.event.listen("folder-selected", (event) => {
@@ -19,7 +22,7 @@ async function sync_game(game_name, path) {
   // Call the rust backend to check the last modified date of the file
   // If the last modified date of the file is newer than the cloud file, upload the file!
   // Otherwise, request the file from the server and save it
-  await invoke("select_folder", { gameName: game_name, path: path });
+  await invoke("sync_game", { gameName: game_name, path: path });
 }
 
 // Function used to circumvent reloading entire GUI upon new folder sync addition
@@ -60,7 +63,7 @@ async function addGames() {
           // Adding the button functionality to the sync button
           syncButton.addEventListener("click", function () {
             // Calling the syncing function with the file path
-            syncGame(`${key}`, `${jsonObj[key]}`);
+            sync_game(`${key}`, `${jsonObj[key]}`);
           });
 
           gameEntry.appendChild(syncButton);

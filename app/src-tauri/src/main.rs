@@ -118,7 +118,9 @@ async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandl
     let local_date = date_modified_local(path.clone()).await;
 
     // Check when the server record was last updated
-    let server_date = date_modified_server(game_name.clone()).await.unwrap();
+    let server_date = date_modified_server(game_name.clone())
+        .await
+        .expect("TODO REASON");
 
     // If record newer then download, if local newer then upload
     if local_date > server_date {
@@ -130,12 +132,19 @@ async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandl
     }
 }
 
-async fn local_sync(game_name: String, path: String) {}
+// This function is used to sync the server to the local gamefiles
+async fn local_sync(game_name: String, path: String) {
+    println!("Local sync. The path is: {}", path);
+}
 
-async fn server_sync(game_name: String, path: String) {}
+// This function is used to sync the local gamefiles to the server
+async fn server_sync(game_name: String, path: String) {
+    println!("Server sync. The path is: {}", path);
+}
 
 // Requests the date modified entry from the server using the game name
 async fn date_modified_server(game_name: String) -> Result<i32, Box<dyn std::error::Error>> {
+    println!("Running function");
     // Sending a get request
     let client = reqwest::Client::new();
     let result = client

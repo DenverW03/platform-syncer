@@ -38,6 +38,7 @@ async fn upload(
 
 #[get("/last_modified/{game_name:.+}")]
 async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, Error> {
+    println!("Running server side");
     let date: i32 = database_interface::get_last_modified(game_name.clone()).unwrap();
 
     // Converting to a string to return in the response body
