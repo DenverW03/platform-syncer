@@ -13,8 +13,12 @@ async fn main() -> std::io::Result<()> {
     // Database presence + setup checking
     check_database().expect("Failed to setup the database");
 
-    HttpServer::new(|| App::new().service(rest_api::upload))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .service(rest_api::upload)
+            .service(rest_api::last_modified)
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
 }

@@ -1,14 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
-use std::error::Error;
+use std::env;
 use std::fs;
-use std::i32::MAX;
 use std::path::PathBuf;
 use std::time::SystemTime;
-use std::{cmp, env};
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
@@ -125,32 +122,35 @@ async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandl
     // If record newer then download, if local newer then upload
     if local_date > server_date {
         // Sync the server to match the local
-        local_sync(game_name, path);
+        local_sync(game_name, path).await;
     } else {
         // Sync the local to match the server
-        server_sync(game_name, path);
+        server_sync(game_name, path).await;
     }
 }
 
 // This function is used to sync the server to the local gamefiles
-async fn local_sync(game_name: String, path: String) {
+async fn local_sync(_game_name: String, path: String) {
     println!("Local sync. The path is: {}", path);
 }
 
 // This function is used to sync the local gamefiles to the server
-async fn server_sync(game_name: String, path: String) {
+async fn server_sync(_game_name: String, path: String) {
     println!("Server sync. The path is: {}", path);
 }
 
 // Requests the date modified entry from the server using the game name
 async fn date_modified_server(game_name: String) -> Result<i32, Box<dyn std::error::Error>> {
-    println!("Running function");
     // Sending a get request
     let client = reqwest::Client::new();
     let result = client
-        .get(format!("http://127.0.0.1:8080/last_modified/{}", game_name))
+        .get(format!(
+            "http://127.0.0.1:8080/last_modified/{}/",
+            game_name
+        ))
         .send()
         .await?;
+
     // Convert the response bytes to a string
     let string_response = String::from_utf8(result.bytes().await?.to_vec())?;
 
