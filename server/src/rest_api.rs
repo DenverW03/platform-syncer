@@ -1,7 +1,6 @@
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{get, post, web, HttpResponse, Responder};
 use std::io::Error;
-use std::path::Path;
 use std::path::PathBuf;
 
 use crate::database_interface;

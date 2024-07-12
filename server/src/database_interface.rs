@@ -13,13 +13,17 @@ pub fn get_last_modified(game_name: String) -> Result<i32> {
     let conn = Connection::open("database.db")?;
 
     // Request the row from the database
-    let mut stmt = conn.prepare("SELECT * FROM Games WHERE directory=./saves/?/")?;
-    let entry = stmt.query_row(params![game_name], |row| {
-        Ok(Game {
-            directory: row.get(0)?,
-            date_time: row.get(1)?,
-        })
-    })?;
+    let mut stmt = conn.prepare("SELECT * FROM Games WHERE directory = ?;")?;
+    let entry = stmt.query_row(
+        params![format!("./saves/{}/", game_name.replace('/', ""))],
+        |row| {
+            // Cleaning game_name just in-case I forget whilst changing something on the client side
+            Ok(Game {
+                directory: row.get(0)?,
+                date_time: row.get(1)?,
+            })
+        },
+    )?;
 
     // Returning the unix time value wrapped in a Result
     Ok(entry.date_time)
