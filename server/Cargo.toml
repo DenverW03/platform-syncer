@@ -11,3 +11,5 @@ actix-multipart = "0.6.1"
 futures = "0.3.30"
 futures-util = "0.3.30"
 rusqlite = "0.31.0"
+tokio-util = { version = "0.7.10", features = ["codec"] }
+tokio = { version = "1.37.0", features = ["full"] }

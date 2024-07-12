@@ -17,6 +17,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(rest_api::upload)
             .service(rest_api::last_modified)
+            .service(rest_api::get_sync)
     })
     .bind("127.0.0.1:8080")?
     .run()

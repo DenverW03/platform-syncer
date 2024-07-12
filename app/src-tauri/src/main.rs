@@ -135,8 +135,61 @@ async fn local_sync(_game_name: String, path: String) {
 }
 
 // This function is used to sync the local gamefiles to the server
-async fn server_sync(_game_name: String, path: String) {
+async fn server_sync(game_name: String, path: String) {
     println!("Server sync. The path is: {}", path);
+
+    // Request the file from the server and handle receipt
+    // Dealing with multipart get request not happening so request each individually
+    // Files are named the same server side as client side\
+    let paths = match fs::read_dir(path) {
+        Ok(paths) => paths,
+        Err(_) => {
+            println!("Failed to read directory");
+            return; // Exit the function if reading the directory fails
+        }
+    };
+
+    for path in paths {
+        // Match on the result of the iterator item
+        let path = match path {
+            Ok(path) => path,
+            Err(_) => {
+                println!("Failed to read path");
+                continue; // Skip this iteration if reading the path fails
+            }
+        };
+
+        // Getting the file name as a proper string
+        let file_name = match path.path().file_name() {
+            Some(file_name) => file_name.to_owned(),
+            None => {
+                println!("Failed to get file name");
+                continue; // Skip this iteration if getting the file name fails
+            }
+        };
+        let file_name2 = match file_name.into_string() {
+            Ok(file_name2) => file_name2,
+            Err(_) => {
+                println!("Failed to get file name 2");
+                continue;
+            }
+        };
+
+        // Building the overall request location
+        let request_location = format!("{}/{}", game_name, file_name2);
+
+        // Requesting the file from the server
+        let client = reqwest::Client::new();
+        let result = client
+            .get(format!(
+                "http://127.0.0.1:8080/get_sync/{}/",
+                request_location
+            ))
+            .send()
+            .await;
+
+        // Overwrite local file with one from server
+    }
 }
 
 // Requests the date modified entry from the server using the game name

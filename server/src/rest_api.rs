@@ -1,5 +1,6 @@
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{get, post, web, HttpResponse, Responder};
+use std::fs;
 use std::io::Error;
 use std::path::PathBuf;
 
@@ -37,10 +38,19 @@ async fn upload(
 
 #[get("/last_modified/{game_name:.+}")]
 async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, Error> {
-    println!("Running server side");
     let date: i32 = database_interface::get_last_modified(game_name.clone()).unwrap();
 
     // Converting to a string to return in the response body
     let response: String = date.to_string();
     Ok(HttpResponse::Ok().body(response))
+}
+
+// Rather than just the game name, this endpoint works via the specific save file
+#[get("/get_sync/{game_file_path:.+}")]
+async fn get_sync(game_name: web::Path<String>) -> impl Responder {
+    println!("Syncing server side");
+
+    let file_paths = fs::read_dir(format!("./saves/{}", game_name))?;
+
+    Ok()
 }
