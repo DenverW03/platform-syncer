@@ -182,11 +182,12 @@ async fn server_sync(game_name: String, path: String) {
         let client = reqwest::Client::new();
         let result = client
             .get(format!(
-                "http://127.0.0.1:8080/get_sync/{}/",
+                "http://127.0.0.1:8080/get_sync/{}",
                 request_location
             ))
             .send()
             .await;
+        // Handle the result of the request
 
         // Overwrite local file with one from server
     }

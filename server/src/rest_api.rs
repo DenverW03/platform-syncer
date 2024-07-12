@@ -47,10 +47,14 @@ async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, E
 
 // Rather than just the game name, this endpoint works via the specific save file
 #[get("/get_sync/{game_file_path:.+}")]
-async fn get_sync(game_name: web::Path<String>) -> impl Responder {
+async fn get_sync(game_file_path: web::Path<String>) -> impl Responder {
     println!("Syncing server side");
 
-    let file_paths = fs::read_dir(format!("./saves/{}", game_name))?;
+    // Handle the request, reply with the request file
 
-    Ok()
+    println!("{}", game_file_path);
+
+    HttpResponse::Ok()
+        .content_type("text/plain")
+        .body("This is a placeholder response")
 }
