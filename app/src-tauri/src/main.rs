@@ -187,7 +187,20 @@ async fn server_sync(game_name: String, path: String) {
             ))
             .send()
             .await;
+
         // Handle the result of the request
+        let response = result.unwrap();
+        if !(response.status().is_success()) {
+            // guard clause if response failed
+            println!("File not received");
+            return;
+        }
+
+        // Getting the bytes from the response body
+        let bytes = response.bytes().await.unwrap();
+
+        // Need to get the path to save to
+        // std::fs::write(, &bytes).unwrap();
 
         // Overwrite local file with one from server
     }

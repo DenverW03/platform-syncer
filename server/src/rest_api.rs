@@ -1,6 +1,6 @@
+use actix_files::NamedFile;
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{get, post, web, HttpResponse, Responder};
-use std::fs;
 use std::io::Error;
 use std::path::PathBuf;
 
@@ -48,13 +48,9 @@ async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, E
 // Rather than just the game name, this endpoint works via the specific save file
 #[get("/get_sync/{game_file_path:.+}")]
 async fn get_sync(game_file_path: web::Path<String>) -> impl Responder {
-    println!("Syncing server side");
+    // Making path accessible as a PathBuf
+    let path: PathBuf = game_file_path.into_inner().into();
 
-    // Handle the request, reply with the request file
-
-    println!("{}", game_file_path);
-
-    HttpResponse::Ok()
-        .content_type("text/plain")
-        .body("This is a placeholder response")
+    // Sending the file to the client if found
+    NamedFile::open_async(path).await
 }
