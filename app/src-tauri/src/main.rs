@@ -4,6 +4,7 @@ use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use std::env;
+use std::fmt::format;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -11,6 +12,13 @@ use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
+
+// Used to access the JSON
+#[derive(Debug)]
+struct GameEntry {
+    name: String,
+    directory_path: String,
+}
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
@@ -203,17 +211,17 @@ async fn server_sync(game_name: String, path: String) {
         // Getting the bytes from the response body
         let bytes = response.bytes().await.unwrap();
 
-        // Need to get the path to save to
-        // std::fs::write(, &bytes).unwrap();
-        //
-        get_game_path(name_game);
+        // Getting game path and specific file path
+        let game_saves_path = get_game_path(name_game);
+        let specific_file_path = format!("{}/{}", game_saves_path, file_name2);
 
         // Overwrite local file with one from server
+        std::fs::write(specific_file_path, &bytes).unwrap();
     }
 }
 
 // Function to get the game directory path from the games.json file
-fn get_game_path(game_name: String) {
+fn get_game_path(game_name: String) -> String {
     // Getting the data directory and specifying the games.json file
     let file_path: &str = &DATA_DIR
         .join("games.json")
@@ -221,19 +229,12 @@ fn get_game_path(game_name: String) {
         .into_string()
         .unwrap();
 
-    // JSON as string
-    let file_contents = match (fs::read_to_string(file_path).map_err(|err| err.to_string())) {
-        Ok(file_contents) => file_contents,
-        Err(_) => {
-            println!("Unable to read games.json");
-            return;
-        }
-    };
+    // Reading JSON from file
+    let file = fs::File::open(file_path).expect("File should open read only");
+    let json: Value = serde_json::from_reader(file).expect("File should be proper JSON structure");
 
-    println!("{}", file_contents);
-
-    // JSON value
-    // let json_data: Value = serde_json::from_str(&file_contents).map_err(|err| err.to_string())?;
+    // Converting relevant entry in JSON file to String and returning it
+    json[game_name].to_string().replace("\"", "") // Replacing the "" left in String
 }
 
 // Requests the date modified entry from the server using the game name
