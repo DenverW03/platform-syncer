@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use std::env;
@@ -140,7 +141,7 @@ async fn server_sync(game_name: String, path: String) {
 
     // Request the file from the server and handle receipt
     // Dealing with multipart get request not happening so request each individually
-    // Files are named the same server side as client side\
+    // Files are named the same server side as client side
     let paths = match fs::read_dir(path) {
         Ok(paths) => paths,
         Err(_) => {
@@ -150,6 +151,9 @@ async fn server_sync(game_name: String, path: String) {
     };
 
     for path in paths {
+        // Clone of game_name for simplicity
+        let name_game = game_name.clone();
+
         // Match on the result of the iterator item
         let path = match path {
             Ok(path) => path,
@@ -176,7 +180,7 @@ async fn server_sync(game_name: String, path: String) {
         };
 
         // Building the overall request location
-        let request_location = format!("{}/{}", game_name, file_name2);
+        let request_location = format!("{}/{}", name_game, file_name2);
 
         // Requesting the file from the server
         let client = reqwest::Client::new();
@@ -201,9 +205,35 @@ async fn server_sync(game_name: String, path: String) {
 
         // Need to get the path to save to
         // std::fs::write(, &bytes).unwrap();
+        //
+        get_game_path(name_game);
 
         // Overwrite local file with one from server
     }
+}
+
+// Function to get the game directory path from the games.json file
+fn get_game_path(game_name: String) {
+    // Getting the data directory and specifying the games.json file
+    let file_path: &str = &DATA_DIR
+        .join("games.json")
+        .into_os_string()
+        .into_string()
+        .unwrap();
+
+    // JSON as string
+    let file_contents = match (fs::read_to_string(file_path).map_err(|err| err.to_string())) {
+        Ok(file_contents) => file_contents,
+        Err(_) => {
+            println!("Unable to read games.json");
+            return;
+        }
+    };
+
+    println!("{}", file_contents);
+
+    // JSON value
+    // let json_data: Value = serde_json::from_str(&file_contents).map_err(|err| err.to_string())?;
 }
 
 // Requests the date modified entry from the server using the game name
@@ -286,14 +316,17 @@ async fn setup_games_json() {
 
 #[tauri::command]
 fn get_games_list(_app_handle: tauri::AppHandle) -> Result<String, String> {
+    // Getting the data directory and specifying the games.json file
     let file_path: &str = &DATA_DIR
         .join("games.json")
         .into_os_string()
         .into_string()
         .unwrap();
 
+    // JSON as string
     let file_contents = fs::read_to_string(file_path).map_err(|err| err.to_string())?;
 
+    // JSON value
     let json_data: Value = serde_json::from_str(&file_contents).map_err(|err| err.to_string())?;
 
     Ok(json!(json_data).to_string())

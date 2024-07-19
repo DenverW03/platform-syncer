@@ -49,7 +49,8 @@ async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, E
 #[get("/get_sync/{game_file_path:.+}")]
 async fn get_sync(game_file_path: web::Path<String>) -> impl Responder {
     // Making path accessible as a PathBuf
-    let path: PathBuf = game_file_path.into_inner().into();
+    let mut path: PathBuf = game_file_path.into_inner().into();
+    path = PathBuf::from("./saves/").join(path);
 
     // Sending the file to the client if found
     NamedFile::open_async(path).await
