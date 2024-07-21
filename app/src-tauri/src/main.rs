@@ -10,14 +10,6 @@ use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use tokio::runtime::Runtime;
-
-// Used to access the JSON
-#[derive(Debug)]
-struct GameEntry {
-    name: String,
-    directory_path: String,
-}
 
 // Using a global var for the app settings path and initialising the path safely
 lazy_static! {
