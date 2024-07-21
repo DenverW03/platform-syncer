@@ -1,10 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use std::env;
-use std::fmt::format;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
@@ -12,6 +10,7 @@ use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
+use tokio::runtime::Runtime;
 
 // Used to access the JSON
 #[derive(Debug)]
@@ -84,37 +83,35 @@ fn write_folder_to_json(game_name: String, path: String) {
 }
 
 // Sending the file over HTTP
-#[tokio::main]
 async fn send_folder_contents(
     directory: String,
     url: &str,
     game_name: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Getting all the files in the directory
-    let paths = fs::read_dir(directory)?;
+    let mut paths = Vec::new();
+    let mut entries = tokio::fs::read_dir(&directory).await?;
+    while let Some(entry) = entries.next_entry().await? {
+        paths.push(entry);
+    }
 
     // Looping through all the files and sending them
     for path in paths {
-        let path = path?;
         let file_path = path.path();
         let filename = path.file_name().to_string_lossy().to_string();
-
-        let file = tokio::fs::File::open(file_path).await?;
+        let file = tokio::fs::File::open(&file_path).await?;
         let client = reqwest::Client::new();
-
         // Uploading the file
         let form = reqwest::multipart::Form::new().part(
             "file",
             reqwest::multipart::Part::stream(file).file_name(filename.clone()),
         );
-
         let _result = client
             .post(format!("{}/upload/{}/", url, game_name)) // upload location depends on game
             .multipart(form)
             .send()
             .await?;
     }
-
     Ok(())
 }
 
@@ -139,8 +136,15 @@ async fn sync_game(game_name: String, path: String, _app_handle: tauri::AppHandl
 }
 
 // This function is used to sync the server to the local gamefiles
-async fn local_sync(_game_name: String, path: String) {
+async fn local_sync(game_name: String, path: String) {
     println!("Local sync. The path is: {}", path);
+
+    let game_path = get_game_path(game_name.clone());
+
+    match send_folder_contents(game_path, "http://127.0.0.1:8080", game_name.clone()).await {
+        Ok(_) => println!("Sync completed successfully"),
+        Err(e) => eprintln!("Sync failed: {:?}", e),
+    }
 }
 
 // This function is used to sync the local gamefiles to the server
