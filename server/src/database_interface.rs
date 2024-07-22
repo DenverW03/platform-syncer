@@ -48,8 +48,6 @@ pub fn insert_directory(directory: PathBuf) -> Result<(), rusqlite::Error> {
     // Connect to the database
     let conn = Connection::open("database.db")?;
 
-    // TODO: Update the database entry (check for existence and if not create entry, otherwise update)
-
     // Creating a struct instance of the data so that rusqlite can handle it
     let directory_string = directory.into_os_string().into_string().unwrap();
     let game: Game = Game {
