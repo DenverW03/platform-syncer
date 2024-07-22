@@ -316,13 +316,34 @@ async fn setup_games_json() {
         let mut file = File::create(&games_to_sync)
             .await
             .expect("Failed to create file");
-        let initial_data = r#"[]"#;
+        let initial_data = r#"{}"#;
         file.write_all(initial_data.as_bytes())
             .await
             .expect("Failed to write initial data to file");
         println!("File created successfully!");
     } else {
-        println!("File already exists.");
+        println!("Games file already exists.");
+    }
+}
+
+#[tokio::main]
+async fn setup_settings_json() {
+    // Getting the settings file
+    let settings_file = DATA_DIR.join("settings.json");
+
+    // If settings.json does not exist, create it
+    if !settings_file.exists() {
+        println!("Settings file does not exist, creating...");
+        let mut file = File::create(&settings_file)
+            .await
+            .expect("Failed to create file");
+        let initial_data = r#"{}"#;
+        file.write_all(initial_data.as_bytes())
+            .await
+            .expect("Failed to write initial data to file");
+        println!("File created successfully!");
+    } else {
+        println!("Settings file already exists.");
     }
 }
 
@@ -346,6 +367,7 @@ fn get_games_list(_app_handle: tauri::AppHandle) -> Result<String, String> {
 
 fn main() {
     setup_games_json();
+    setup_settings_json();
 
     // Setting up the Tauri app frontend
     tauri::Builder::default()
