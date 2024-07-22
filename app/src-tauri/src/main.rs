@@ -81,14 +81,11 @@ async fn send_folder_contents(
     game_name: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Getting all the files in the directory
-    let mut paths = Vec::new();
-    let mut entries = tokio::fs::read_dir(&directory).await?;
-    while let Some(entry) = entries.next_entry().await? {
-        paths.push(entry);
-    }
+    let paths = fs::read_dir(directory)?;
 
     // Looping through all the files and sending them
     for path in paths {
+        let path = path?;
         let file_path = path.path();
         let filename = path.file_name().to_string_lossy().to_string();
         let file = tokio::fs::File::open(&file_path).await?;
