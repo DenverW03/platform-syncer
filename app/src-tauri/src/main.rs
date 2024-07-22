@@ -81,20 +81,27 @@ async fn send_folder_contents(
     game_name: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Getting all the files in the directory
-    let paths = fs::read_dir(directory)?;
+    // Using a vector to allow for path iteration in loop
+    let mut paths = Vec::new();
+    let mut entries = tokio::fs::read_dir(&directory).await?;
+    while let Some(entry) = entries.next_entry().await? {
+        paths.push(entry);
+    }
 
     // Looping through all the files and sending them
     for path in paths {
-        let path = path?;
         let file_path = path.path();
         let filename = path.file_name().to_string_lossy().to_string();
         let file = tokio::fs::File::open(&file_path).await?;
         let client = reqwest::Client::new();
-        // Uploading the file
+
+        // Creating the HTTP form
         let form = reqwest::multipart::Form::new().part(
             "file",
             reqwest::multipart::Part::stream(file).file_name(filename.clone()),
         );
+
+        // Uploading the file
         let _result = client
             .post(format!("{}/upload/{}/", url, game_name)) // upload location depends on game
             .multipart(form)
