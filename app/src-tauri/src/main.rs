@@ -27,19 +27,14 @@ lazy_static! {
     };
 
     static ref SERVER_URL: String = {
-        // Getting the data directory and specifying the games.json file
         let file_path: &str = &DATA_DIR
             .join("settings.json")
             .into_os_string()
             .into_string()
             .unwrap();
-
-        // Reading JSON from file
         let file = fs::File::open(file_path).expect("File should open read only");
         let json: Value = serde_json::from_reader(file).expect("File should be proper JSON structure");
-
-        // Converting relevant entry in JSON file to String and returning it
-        json["server_url"].to_string().replace("\"", "") // Replacing the "" left in String
+        json["server_url"].to_string().replace("\"", "")
     };
 }
 
