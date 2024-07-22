@@ -1,1 +1,0 @@
-CREATE TABLE Games (directory TEXT NOT NULL, date_time INTEGER NOT NULL, PRIMARY KEY (directory));
