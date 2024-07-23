@@ -26,17 +26,17 @@ lazy_static! {
         data_dir.push("my_app");
         data_dir
     };
+}
 
-    static ref SERVER_URL: String = {
-        let file_path: &str = &DATA_DIR
-            .join("settings.json")
-            .into_os_string()
-            .into_string()
-            .unwrap();
-        let file = fs::File::open(file_path).expect("File should open read only");
-        let json: Value = serde_json::from_reader(file).expect("File should be proper JSON structure");
-        json["server_url"].to_string().replace("\"", "")
-    };
+fn current_url() -> String {
+    let file_path: &str = &DATA_DIR
+        .join("settings.json")
+        .into_os_string()
+        .into_string()
+        .unwrap();
+    let file = fs::File::open(file_path).expect("File should open read only");
+    let json: Value = serde_json::from_reader(file).expect("File should be proper JSON structure");
+    json["server_url"].to_string().replace("\"", "")
 }
 
 #[tauri::command]
@@ -61,7 +61,7 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
             // Sending the file to the server
-            let _ = send_folder_contents(result, "http://127.0.0.1:8080", game_name.clone());
+            let _ = send_folder_contents(result, current_url().as_str(), game_name.clone());
         }
     });
 }
@@ -94,7 +94,7 @@ fn new_server_address(server_address: String, _app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn get_current_server_address(_app_handle: tauri::AppHandle) -> Result<String, ()> {
-    Ok(SERVER_URL.to_string())
+    Ok(current_url())
 }
 
 fn write_folder_to_json(game_name: String, path: String) {
@@ -180,7 +180,7 @@ async fn local_sync(game_name: String, path: String) {
 
     let game_path = get_game_path(game_name.clone());
 
-    match send_folder_contents(game_path, "http://127.0.0.1:8080", game_name.clone()).await {
+    match send_folder_contents(game_path, current_url().as_str(), game_name.clone()).await {
         Ok(_) => println!("Sync completed successfully"),
         Err(e) => eprintln!("Sync failed: {:?}", e),
     }
@@ -236,10 +236,7 @@ async fn server_sync(game_name: String, path: String) {
         // Requesting the file from the server
         let client = reqwest::Client::new();
         let result = client
-            .get(format!(
-                "http://127.0.0.1:8080/get_sync/{}",
-                request_location
-            ))
+            .get(format!("{}/get_sync/{}", current_url(), request_location))
             .send()
             .await;
 
@@ -285,10 +282,7 @@ async fn date_modified_server(game_name: String) -> Result<i32, Box<dyn std::err
     // Sending a get request
     let client = reqwest::Client::new();
     let result = client
-        .get(format!(
-            "http://127.0.0.1:8080/last_modified/{}/",
-            game_name
-        ))
+        .get(format!("{}/last_modified/{}/", current_url(), game_name))
         .send()
         .await?;
 
