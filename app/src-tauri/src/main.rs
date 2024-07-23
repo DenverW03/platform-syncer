@@ -69,6 +69,27 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
 #[tauri::command]
 fn new_server_address(server_address: String, _app_handle: tauri::AppHandle) {
     println!("{}", server_address);
+
+    // Getting the data directory and specifying the games.json file
+    let file_path: &str = &DATA_DIR
+        .join("settings.json")
+        .into_os_string()
+        .into_string()
+        .unwrap();
+
+    // Reading JSON from file
+    let file = fs::File::open(file_path).expect("File should open read only");
+    let mut json: Value =
+        serde_json::from_reader(&file).expect("File should be proper JSON structure");
+
+    json["server_url"] = serde_json::Value::String(server_address);
+
+    // Writing the string to the file
+    let json_string = json.to_string();
+    match fs::write(&file_path, json_string) {
+        Ok(_) => println!("New server URL saved successfully!"),
+        Err(_) => println!("Failed to save new server URL"),
+    }
 }
 
 #[tauri::command]
