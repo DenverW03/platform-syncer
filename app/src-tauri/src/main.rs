@@ -6,11 +6,7 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
-use tauri::menu::Menu;
 use tauri::menu::MenuBuilder;
-use tauri::menu::MenuItem;
-use tauri::menu::MenuItemBuilder;
-use tauri::menu::Submenu;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
@@ -68,6 +64,16 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             let _ = send_folder_contents(result, "http://127.0.0.1:8080", game_name.clone());
         }
     });
+}
+
+#[tauri::command]
+fn new_server_address(server_address: String, _app_handle: tauri::AppHandle) {
+    println!("{}", server_address);
+}
+
+#[tauri::command]
+fn get_current_server_address(_app_handle: tauri::AppHandle) -> Result<String, ()> {
+    Ok(SERVER_URL.to_string())
 }
 
 fn write_folder_to_json(game_name: String, path: String) {
@@ -342,7 +348,7 @@ async fn setup_settings_json() {
         let mut file = File::create(&settings_file)
             .await
             .expect("Failed to create file");
-        let initial_data = r#"{}"#;
+        let initial_data = r#"{"server_url":""}"#;
         file.write_all(initial_data.as_bytes())
             .await
             .expect("Failed to write initial data to file");
@@ -381,7 +387,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             select_folder,
             get_games_list,
-            sync_game
+            sync_game,
+            new_server_address,
+            get_current_server_address
         ])
         .setup(|app| {
             // Setting up a menu to remove default one

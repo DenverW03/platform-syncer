@@ -17,6 +17,10 @@ async function selectFolder() {
   });
 }
 
+async function newServerAddress(serverAddress) {
+  await invoke("new_server_address", { serverAddress: serverAddress });
+}
+
 // This function syncs the game with the cloud: TODO!
 async function sync_game(game_name, path) {
   // Call the rust backend to check the last modified date of the file
@@ -86,4 +90,23 @@ window.addEventListener("DOMContentLoaded", async () => {
     .addEventListener("click", function () {
       selectFolder();
     });
+
+  const serverInput = document.getElementById("server-input");
+
+  // Setting the visible URL if there is one, if not there is placeholder text - "server address"
+  invoke("get_current_server_address").then((serverURL) => {
+    if (serverURL != "") {
+      serverInput.placeholder = serverURL;
+    }
+  });
+
+  serverInput.addEventListener("keyup", (event) => {
+    // Check if the key pressed was Enter
+    if (event.key === "Enter") {
+      const serverAddress = serverInput.value.trim();
+      if (serverAddress) {
+        newServerAddress(serverAddress);
+      }
+    }
+  });
 });
