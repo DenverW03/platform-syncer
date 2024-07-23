@@ -6,6 +6,11 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
+use tauri::menu::Menu;
+use tauri::menu::MenuBuilder;
+use tauri::menu::MenuItem;
+use tauri::menu::MenuItemBuilder;
+use tauri::menu::Submenu;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tokio::fs::File;
@@ -378,6 +383,13 @@ fn main() {
             get_games_list,
             sync_game
         ])
+        .setup(|app| {
+            // Setting up a menu to remove default one
+            // Separator on macos allows for the macos options tray to remain togglable
+            let menu = MenuBuilder::new(app).separator().build()?;
+            app.set_menu(menu)?;
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
