@@ -1,4 +1,5 @@
 use rusqlite::{params, Connection, Result};
+use std::error::Error;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -44,12 +45,17 @@ pub fn check_database() -> Result<(), rusqlite::Error> {
 }
 
 // Function used to insert a row of data into the database
-pub fn insert_directory(directory: PathBuf) -> Result<(), rusqlite::Error> {
+pub fn insert_directory(directory: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     // Connect to the database
     let conn = Connection::open("database.db")?;
 
     // Creating a struct instance of the data so that rusqlite can handle it
-    let directory_string = directory.into_os_string().into_string().unwrap();
+    let directory_string = directory.into_os_string().into_string().map_err(|_| {
+        Box::new(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "Failed to convert directory path to string",
+        ))
+    })?;
     let game: Game = Game {
         directory: directory_string,
         date_time: 0, // Throwaway placeholder for now, isn't inserted into the table anyway
