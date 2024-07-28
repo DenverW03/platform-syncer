@@ -1,7 +1,7 @@
 {
   "productName": "platform-syncer",
   "version": "0.0.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.denverw.syncer",
   "build": {
     "frontendDist": "../src"
   },
