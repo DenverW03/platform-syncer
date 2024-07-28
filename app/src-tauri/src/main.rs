@@ -28,15 +28,27 @@ lazy_static! {
     };
 }
 
-fn current_url() -> String {
+fn current_url() -> Result<String, ()> {
     let file_path: &str = &DATA_DIR
         .join("settings.json")
         .into_os_string()
         .into_string()
         .unwrap();
-    let file = fs::File::open(file_path).expect("File should open read only");
-    let json: Value = serde_json::from_reader(file).expect("File should be proper JSON structure");
-    json["server_url"].to_string().replace("\"", "")
+    let file = match fs::File::open(file_path) {
+        Ok(file) => file,
+        Err(_) => {
+            println!("Failed to open settings file");
+            return Err(());
+        }
+    };
+    let json: Value = match serde_json::from_reader(file) {
+        Ok(json) => json,
+        Err(_) => {
+            println!("File should be proper JSON structure");
+            return Err(());
+        }
+    };
+    Ok(json["server_url"].to_string().replace("\"", ""))
 }
 
 #[tauri::command]
@@ -47,6 +59,15 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
         let result = match folder_path {
             Some(file_response) => file_response.into_os_string().into_string().unwrap(),
             None => "".to_string(),
+        };
+
+        // Getting the current URL
+        let current_url = match current_url() {
+            Ok(current_url) => current_url,
+            Err(_) => {
+                println!("Failed to get the current URL");
+                return;
+            }
         };
 
         // Handling the cases that the result can be in
@@ -61,7 +82,7 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             app_handle.emit("folder-selected", result.clone()).unwrap();
 
             // Sending the file to the server
-            let _ = send_folder_contents(result, current_url().as_str(), game_name.clone());
+            let _ = send_folder_contents(result, current_url.as_str(), game_name.clone());
         }
     });
 }
@@ -94,7 +115,15 @@ fn new_server_address(server_address: String, _app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn get_current_server_address(_app_handle: tauri::AppHandle) -> Result<String, ()> {
-    Ok(current_url())
+    // Getting the current URL
+    let current_url = match current_url() {
+        Ok(current_url) => current_url,
+        Err(_) => {
+            println!("Failed to get the current URL");
+            return Err(());
+        }
+    };
+    Ok(current_url)
 }
 
 fn write_folder_to_json(game_name: String, path: String) {
@@ -180,7 +209,16 @@ async fn local_sync(game_name: String, path: String) {
 
     let game_path = get_game_path(game_name.clone());
 
-    match send_folder_contents(game_path, current_url().as_str(), game_name.clone()).await {
+    // Getting the current URL
+    let current_url = match current_url() {
+        Ok(current_url) => current_url,
+        Err(_) => {
+            println!("Failed to get the current URL");
+            return;
+        }
+    };
+
+    match send_folder_contents(game_path, current_url.as_str(), game_name.clone()).await {
         Ok(_) => println!("Sync completed successfully"),
         Err(e) => eprintln!("Sync failed: {:?}", e),
     }
@@ -233,10 +271,19 @@ async fn server_sync(game_name: String, path: String) {
         // Building the overall request location
         let request_location = format!("{}/{}", name_game, file_name2);
 
+        // Getting the current URL
+        let current_url = match current_url() {
+            Ok(current_url) => current_url,
+            Err(_) => {
+                println!("Failed to get the current URL");
+                return;
+            }
+        };
+
         // Requesting the file from the server
         let client = reqwest::Client::new();
         let result = client
-            .get(format!("{}/get_sync/{}", current_url(), request_location))
+            .get(format!("{}/get_sync/{}", current_url, request_location))
             .send()
             .await;
 
@@ -279,10 +326,21 @@ fn get_game_path(game_name: String) -> String {
 
 // Requests the date modified entry from the server using the game name
 async fn date_modified_server(game_name: String) -> Result<i32, Box<dyn std::error::Error>> {
+    // Getting the current URL
+    let current_url = match current_url() {
+        Ok(current_url) => current_url,
+        Err(_) => {
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Failed to get the current URL",
+            )));
+        }
+    };
+
     // Sending a get request
     let client = reqwest::Client::new();
     let result = client
-        .get(format!("{}/last_modified/{}/", current_url(), game_name))
+        .get(format!("{}/last_modified/{}/", current_url, game_name))
         .send()
         .await?;
 
