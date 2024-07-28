@@ -1,5 +1,4 @@
 use rusqlite::{params, Connection, Result};
-use std::error::Error;
 use std::path::PathBuf;
 
 #[derive(Debug)]
