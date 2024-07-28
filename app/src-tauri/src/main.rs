@@ -90,8 +90,13 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             // Broadcasting that the file has been found to the frontend
             app_handle.emit("folder-selected", result.clone()).unwrap(); // gonna leave this in because I really CBA handling bridging with matches
 
-            // Sending the file to the server
-            let _ = send_folder_contents(result, current_url.as_str(), game_name.clone());
+            // Sending the file to the server new runtime due to async nature and this is in a closure
+            tauri::async_runtime::spawn(async move {
+                match send_folder_contents(result, current_url.as_str(), game_name).await {
+                    Ok(_) => println!("Game files sent to server successfully!"),
+                    Err(e) => println!("Error sending folder contents: {:?}", e),
+                }
+            });
         }
     });
 }
