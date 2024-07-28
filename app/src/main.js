@@ -34,9 +34,29 @@ function addSpecificGame(gameName, dir) {
   const container = document.getElementById("game-container");
   const game = document.createElement("div");
 
-  game.classList.add("game-entry");
-  game.textContent = `${gameName}: ${dir}`;
-  container.appendChild(game);
+  // Adding the game entry to the game container
+  const gameEntry = document.createElement("div");
+  gameEntry.classList.add("game-entry");
+
+  // Adding a text div to the game entry
+  const gameText = document.createElement("div");
+  gameText.classList.add("game-text");
+  gameText.textContent = `${gameName}: ${dir}`;
+  gameEntry.appendChild(gameText);
+
+  // Creating a sync button to add to the div
+  const syncButton = document.createElement("button");
+  syncButton.classList.add("sync-button");
+  syncButton.textContent = "SYNC";
+
+  // Adding the button functionality to the sync button
+  syncButton.addEventListener("click", function () {
+    // Calling the syncing function with the file path
+    sync_game(`${gameName}`, `${dir}`);
+  });
+
+  gameEntry.appendChild(syncButton);
+  container.appendChild(gameEntry);
 }
 
 async function addGames() {
