@@ -31,14 +31,24 @@ async fn upload(
     let dir = PathBuf::from("./saves/").join(game_name.clone());
 
     // Adding to database after file saved
-    database_interface::insert_directory(dir).expect("Failed to update saved records"); // doing nothing with the returned result atm but will later. TODO i guess lmao
+    match database_interface::insert_directory(dir) {
+        Ok(_) => println!("Successfully updated entry in database"),
+        Err(_) => println!("Failed to update saved records"),
+    }
 
     Ok(HttpResponse::Ok())
 }
 
 #[get("/last_modified/{game_name:.+}")]
 async fn last_modified(game_name: web::Path<String>) -> Result<impl Responder, Error> {
-    let date: i32 = database_interface::get_last_modified(game_name.clone()).unwrap();
+    let date: i32 = match database_interface::get_last_modified(game_name.clone()) {
+        Ok(date) => date,
+        Err(_) => {
+            return Ok(
+                HttpResponse::InternalServerError().body("Failed to get the date last modified")
+            );
+        }
+    };
 
     // Converting to a string to return in the response body
     let response: String = date.to_string();
