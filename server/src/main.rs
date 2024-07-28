@@ -2,7 +2,6 @@ use std::fs;
 
 use actix_web::{App, HttpServer};
 use database_interface::check_database;
-use tokio::fs::File;
 
 mod database_interface;
 mod rest_api;
