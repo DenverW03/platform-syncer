@@ -6,15 +6,17 @@ Sync your games between MACOS, WINDOWS and LINUX easily!
 
 There are games on steam that don't support cross platform save file synchronization.
 
-For me, playing Lies of P on both my macbook and windows PC could be annoying to manually sync the files.
+For me, playing Lies of P on both my MacBook and Windows PC was irritating as I had to manually sync the game save.
 
 So I made this software: __PLATFORM-SYNCER__
 
+Platform-syncer is a full-stack application that allows you to sync your files by simply clicking a button.
+
 ## Important Info
 
-The serverside component of this software platform must be self-hosted, whether that is from a server provider, or your home server. The server is built to run on MacOS or Linux.
+The serverside component of this software platform must be self-hosted, whether that is from a server provider, or your home server. The server is intended to run on MacOS or Linux, but a windows release is also distributed.
 
-The clientside can run on MACOS, WINDOWS and LINUX! It was built using the Tauri framework (https://tauri.app/) for the UI.
+The clientside runs on MacOS, Windows and Linux! It was built using the Tauri framework (https://tauri.app/) for the UI.
 
 For both the server and the client, you can build it yourself with cargo, or use the provided executables.
 
@@ -30,6 +32,14 @@ For both the server and the client, you can build it yourself with cargo, or use
 
 * Add a game
 * Play!
+
+When adding an extra client to your setup (ie. you have a single client set up to sync with the server and want to add another client, for syncing between two devices), rather than adding the games in the app you should edit the _games.json_ file for the application data, this can be found at:
+
+- MacOS: Library/Application Support/syncer/games.json
+- Linux: .config/syncer/games.json
+- Windows: APPDATA\Roaming\ROAMING\syncer\games.json
+
+You should make the new _games.json_ file identical to the existing one. This will also help to mediate any inconsistencies you could introduce by naming the same game in two different ways :).
 
 ### Server
 * Download the server files
