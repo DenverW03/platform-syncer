@@ -11,7 +11,10 @@ async fn main() -> std::io::Result<()> {
     storage_interface::saves_dir_check();
 
     // Database presence + setup checking
-    check_database().expect("Failed to setup the database");
+    match check_database() {
+        Ok(_) => println!("Database is set up"),
+        Err(_) => println!("Failed to setup the database"),
+    }
 
     HttpServer::new(|| {
         App::new()
