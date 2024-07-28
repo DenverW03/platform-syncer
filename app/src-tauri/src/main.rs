@@ -57,8 +57,17 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
     app_handle.dialog().file().pick_folder(move |folder_path| {
         // Return a file_path `Option`, or `None` if the user closes the dialog
         let result = match folder_path {
-            Some(file_response) => file_response.into_os_string().into_string().unwrap(),
-            None => "".to_string(),
+            Some(file_response) => match file_response.into_os_string().into_string() {
+                Ok(file_string) => file_string,
+                Err(_) => {
+                    println!("Failed to convert name of folder found to string");
+                    return;
+                }
+            },
+            None => {
+                println!("Failed to pick a folder");
+                return;
+            }
         };
 
         // Getting the current URL
@@ -79,7 +88,7 @@ fn select_folder(game_name: String, app_handle: tauri::AppHandle) {
             write_folder_to_json(game_name.clone(), result.clone());
 
             // Broadcasting that the file has been found to the frontend
-            app_handle.emit("folder-selected", result.clone()).unwrap();
+            app_handle.emit("folder-selected", result.clone()).unwrap(); // gonna leave this in because I really CBA handling bridging with matches
 
             // Sending the file to the server
             let _ = send_folder_contents(result, current_url.as_str(), game_name.clone());
