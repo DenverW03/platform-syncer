@@ -39,7 +39,7 @@ When adding an extra client to your setup (ie. you have a single client set up t
 - Linux: .config/syncer/games.json
 - Windows: APPDATA\Roaming\ROAMING\syncer\games.json
 
-You should make the new _games.json_ file identical to the existing one. This will also help to mediate any inconsistencies you could introduce by naming the same game in two different ways :).
+You should make the new _games.json_ file identical to the existing one, with the path to game save files changed to match the path on the new system. This will also help to mediate any inconsistencies you could introduce by naming the same game in two different ways :).
 
 ### Server
 * Download the server files
